@@ -1,7 +1,7 @@
 from supportlib.sensor_position_finding import SensorPositionRequester, SensorPositionFinder
 from supportlib.data_types import Sensor, SensorPosition
 from supportlib.file_reading import iterate_sensor_data
-from algorithm.sensor_position_identifier import SensorPositionIdentifier
+from algorithm.sensor_position_identifying import SensorPositionIdentifier
 
 MOVEMENT_DATA_FILE_PATH = "resources/sensor_data.csv"
 N_TRACKERS = 5

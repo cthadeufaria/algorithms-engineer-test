@@ -13,7 +13,7 @@ class Limb:
 class Body:
     """A class representing the body of the patient."""
     def __init__(self):
-        self.limbs = [Limb(np.array((0., 0, -1.)), 0.) for _ in range(5)]
+        self.limbs = [Limb() for _ in range(5)]
         self.assign_positions()
         self.assign_lengths()
         self.perform_leg_movements()
@@ -39,20 +39,18 @@ class Body:
         for limb in self.limbs:
             if limb.position == SensorPosition.RIGHT_THIGH or limb.position == SensorPosition.LEFT_THIGH:
                 for length in limb.lengths:
-                    for theta in range(0, np.pi/2):
-                        limb.movement.append(length*np.sqrt(2*(1-np.cos(theta))))
+                    for theta in np.linspace(0, np.pi/2, 50): #TODO: fix function. It's backwards.
+                        limb.movement.append(np.array([length*np.sin(theta), length*np.sqrt(2*(1-np.cos(theta)))]))
                         #TODO: add noise to the movement
 
             elif limb.position == SensorPosition.RIGHT_SHANK or limb.position == SensorPosition.LEFT_SHANK:
                 for length in limb.lengths:
-                    for theta in range(0, np.pi/2):
-                        limb.movement.append(length*np.sin(theta))
-                        limb.movement = add_noise(limb.movement)
+                    for theta in np.linspace(0, np.pi/2, 50):
+                        limb.movement.append(np.array([0., length*np.sin(theta)]))
                         #TODO: add noise to the movement
 
             elif limb.position == SensorPosition.CHEST:
                 for length in limb.lengths:
-                    for theta in range(0, np.pi/2):
-                        limb.movement.append(0.)
-                        limb.movement = add_noise(limb.movement)
+                    for _ in np.linspace(0, np.pi/2, 50):
+                        limb.movement.append((0.))
                         #TODO: add noise to the movement
