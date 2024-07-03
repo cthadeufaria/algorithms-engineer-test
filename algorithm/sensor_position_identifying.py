@@ -1,13 +1,14 @@
 from supportlib.sensor_position_finding import SensorPositionFinder, SensorPositionRequester
-from algorithm.kinematics_model import KinematicModel
+from algorithm.kinematics_model import Body
 
 
 class SensorPositionIdentifier(SensorPositionFinder):
     def __init__(self, 
                  position_requester: SensorPositionRequester):
         super().__init__(position_requester)
+        self.body = Body()
 
-    def on_new_sensor_sample(self, 
+    def on_new_sensor_sample(self,
                              data_dict):
         for sensor, sensor_data in data_dict.items():
             # TODO: identify the sensor position based on the sensor data
