@@ -39,13 +39,13 @@ class Body:
         for limb in self.limbs:
             if limb.position == SensorPosition.RIGHT_THIGH or limb.position == SensorPosition.LEFT_THIGH:
                 for length in limb.lengths:
-                    for theta in np.linspace(0, np.pi/2, 50): #TODO: fix function. It's backwards.
+                    for theta in np.linspace(0, np.pi/2, 50):
                         limb.movement.append(np.array([length*np.sin(theta), length*np.sqrt(2*(1-np.cos(theta)))]))
                         #TODO: add noise to the movement
 
             elif limb.position == SensorPosition.RIGHT_SHANK or limb.position == SensorPosition.LEFT_SHANK:
                 for length in limb.lengths:
-                    for theta in np.linspace(0, np.pi/2, 50):
+                    for theta in np.linspace(0, np.pi/2, 50): # TODO: check if this function is correct by plotting the sensor filtered data
                         limb.movement.append(np.array([0., length*np.sin(theta)]))
                         #TODO: add noise to the movement
 

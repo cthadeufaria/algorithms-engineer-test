@@ -1,16 +1,18 @@
 import matplotlib.pyplot as plt
 import numpy as np
 from numpy import dot
+
 from numpy import *
 from numpy.linalg import inv
 from numpy.linalg import det
 import random
 random.seed(3)
 
+
 def kf_predict(X, P, A, Q, B, U):
     """
-    X : The mean state estimate of the previous step (k-1) - shape(m,1)
-    P : The state covariance of previous step (k-1) - shape(m,m)
+    X : The mean state estimate of the previous step (k−1) - shape(m,1)
+    P : The state covariance of previous step (k−1) - shape(m,m)
     A : The transition matrix - shape(m,m)
     Q : The process noise covariance matrix - shape(m,m)
     B : The input effect matrix - shape(p, m)
@@ -45,7 +47,8 @@ X = np.array( [ [0.0] , [0.0]] )
 P = np.array( [ [ 999.0, 0.0 ] ,
 [ 0.0, 999.0 ] ] )
 # state matrix
-A = np.array( [ [ 1.0, dt ], [ 0.0, 1.0 ] ] )
+A = np.array( [ [ 1.0, dt ] ,
+[ 0.0, 1.0 ] ] )
 # input effect matrix
 B = np.array( [ [0.5*dt**2], [dt] ] )
 # meas matrix
@@ -56,8 +59,7 @@ R = np.array([ [1.0] ] )
 Q = np.array(np.eye(2) * 5 )
 # meas
 Y = np.array([ [0.1] ])
-
-# For Pretty Plotting
+# For Pritty Plotting
 t=0
 t_time = []
 d_time = [] # position of train over time (mean)
@@ -82,7 +84,6 @@ train_a_time = [] # real train acceleration (this is the input of the system)
 N_iter = 50 # implies dt*N_iter seconds
 for i in arange(0, N_iter):
     t += dt;
-
     if t<1:
         train_a=5 # acceleration
         R = np.array([ [1.0] ] ) # meas noise
@@ -114,8 +115,6 @@ for i in arange(0, N_iter):
     d_dn_time.append( X[0].item() - sqrt( P[0][0]).item() )
     v_up_time.append( X[1].item() + sqrt( P[1][1]).item() )
     v_dn_time.append( X[1].item() - sqrt( P[1][1]).item() )
-
-
 # End For Loop
 fig = plt.figure(figsize=(8,8))
 # d

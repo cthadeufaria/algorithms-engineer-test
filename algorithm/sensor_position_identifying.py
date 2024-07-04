@@ -1,5 +1,7 @@
+from supportlib.data_types import Sensor, SensorData
 from supportlib.sensor_position_finding import SensorPositionFinder, SensorPositionRequester
 from algorithm.kinematics_model import Body
+from algorithm.kalman_filter import KalmanFilter
 
 
 class SensorPositionIdentifier(SensorPositionFinder):
@@ -7,9 +9,12 @@ class SensorPositionIdentifier(SensorPositionFinder):
                  position_requester: SensorPositionRequester):
         super().__init__(position_requester)
         self.body = Body()
+        self.kalman_filter = KalmanFilter()
 
     def on_new_sensor_sample(self,
-                             data_dict):
+                             data_dict: dict[Sensor, SensorData]):
+        data_dict = self.kalman_filter.filter(data_dict)
+
         for sensor, sensor_data in data_dict.items():
             # TODO: identify the sensor position based on the sensor data
             sensor_position = None
