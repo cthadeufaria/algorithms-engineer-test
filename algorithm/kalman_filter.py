@@ -13,16 +13,29 @@ class KalmanFilter:
     def __init__(self,
                  dt=0.02):
         """Define initial state conditions."""
+        self.dt = dt
         self.X = np.array([[0.0] , [0.0]])
         self.P = np.array([[999.0, 0.0] ,[0.0, 999.0]])
-        self.A = np.array([[1.0, dt], [0.0, 1.0]])
-        self.B = np.array([[0.5*dt**2], [dt]])
         self.H = np.array([[1.0, 0.0]])
         self.R = np.array([[1.0]])
         self.Q = np.array(np.eye(2)*5)
         self.Y = np.array([[0.]])
+        self.time = 0.0
+        self.coordinates = list()
+        self.upper_bound = list()
+        self.lower_bound = list()
 
-    def kf_predict(X, P, A, Q, B, U):
+    def update_state_space_system(self, vec_x, acc):
+        """Update state space system."""
+        self.time += self.dt
+        self.U = np.array([[acc]])
+        self.A = np.array([[1.0, self.dt*vec_x], [0.0, 1.0]])
+        self.B = np.array([[(0.5*self.dt**2)*vec_x], [self.dt]])
+
+    def update_measurement_estimate(self):
+        self.Y = self.H @ (self.A @ self.X + self.B @ self.U)
+    
+    def predict(self):
         """
         X : The mean state estimate of the previous step (k-1) - shape(m,1)
         P : The state covariance of previous step (k-1) - shape(m,m)
@@ -31,20 +44,22 @@ class KalmanFilter:
         B : The input effect matrix - shape(p, m)
         U : The control input - shape(q,1)
         """
-        X = A @ X + B @ U
-        P = A @ P @ A.T + Q
-        return(X,P)
+        self.X = self.A @ self.X + self.B @ self.U
+        self.P = self.A @ self.P @ self.A.T + self.Q
 
-    def kf_update(X, P, Y, H, R):
+    def update(self):
         """
         K : the Kalman Gain matrix
         IS : the Covariance or predictive mean of Y
         """
-        IS = H @ P @ H.T + R
-        K = P @ H.T @ inv(IS)
-        X = X + K @ (Y- H @ X)
-        P = P - K @ IS @ K.T
-        # P = P - K @ H @ P
-        return (X,P)
+        IS = self.H @ self.P @ self.H.T + self.R
+        K = self.P @ self.H.T @ inv(IS)
+        self.X = self.X + K @ (self.Y- self.H @ self.X)
+        # self.P = self.P - K @ IS @ K.T
+        self.P = self.P - K @ self.H @ self.P
     
+    def append_coordinates(self):
+        self.coordinates.append(self.X[0].item())
+        self.upper_bound.append(self.X[0].item()+sqrt(self.P[0][0]).item())
+        self.lower_bound.append(self.X[0].item()-sqrt(self.P[0][0]).item())
 

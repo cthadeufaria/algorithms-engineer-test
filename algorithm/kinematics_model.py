@@ -52,5 +52,5 @@ class Body:
             elif limb.position == SensorPosition.CHEST:
                 for length in limb.lengths:
                     for _ in np.linspace(0, np.pi/2, 50):
-                        limb.movement.append((0.))
+                        limb.movement.append((0.)) # TODO: change chest coordinates to comply with kalman filter output
                         #TODO: add noise to the movement
