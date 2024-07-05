@@ -33,7 +33,7 @@ def kf_update(X, P, Y, H, R):
 #
 
 sensor_data = pd.read_csv('resources/sensor_data.csv')
-sensor_data['vec_x'] = sensor_data['vec_x'].apply(lambda x: 0. if x < 0. else x)
+# sensor_data['vec_x'] = sensor_data['vec_x'].apply(lambda x: 0. if x < 0. else x)
 
 for sensor in unique(sensor_data['sensor']):
     # ini state

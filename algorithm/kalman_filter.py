@@ -1,11 +1,6 @@
-import matplotlib.pyplot as plt
 import numpy as np
-from numpy import dot
 from numpy import *
 from numpy.linalg import inv
-from numpy.linalg import det
-import random
-random.seed(3)
 
 
 class KalmanFilter:
@@ -62,4 +57,3 @@ class KalmanFilter:
         self.coordinates.append(self.X[0].item())
         self.upper_bound.append(self.X[0].item()+sqrt(self.P[0][0]).item())
         self.lower_bound.append(self.X[0].item()-sqrt(self.P[0][0]).item())
-

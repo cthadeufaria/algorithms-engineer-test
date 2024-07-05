@@ -1,6 +1,6 @@
 import numpy as np
 from supportlib.data_types import SensorPosition, SensorData
-from algorithm.utils import add_noise, save_csv
+from algorithm.utils import *
 
 
 class Limb:
@@ -17,6 +17,7 @@ class Body:
         self.assign_positions()
         self.assign_lengths()
         self.perform_leg_movements()
+        self.compute_centroids()
 
     def assign_positions(self):
         """Assign positions to the limbs."""
@@ -36,21 +37,69 @@ class Body:
 
     def perform_leg_movements(self):
         """Create model dataset from performing repetition of calibration leg movement."""
-        for limb in self.limbs:
-            if limb.position == SensorPosition.RIGHT_THIGH or limb.position == SensorPosition.LEFT_THIGH:
-                for length in limb.lengths:
-                    for theta in np.linspace(0, np.pi/2, 50):
-                        limb.movement.append(np.array([length*np.sin(theta), length*np.sqrt(2*(1-np.cos(theta)))]))
-                        #TODO: add noise to the movement
+        time_ranges = [
+            np.linspace(0, 2.5, 125), 
+            np.linspace(2.5, 5, 125), 
+            np.linspace(5, 7.5, 125),
+            np.linspace(7.5, 10, 125)
+        ]
 
-            elif limb.position == SensorPosition.RIGHT_SHANK or limb.position == SensorPosition.LEFT_SHANK:
+        for limb in self.limbs:
+            if limb.position == SensorPosition.RIGHT_THIGH:
                 for length in limb.lengths:
-                    for theta in np.linspace(0, np.pi/2, 50): # TODO: check if this function is correct by plotting the sensor filtered data
-                        limb.movement.append(np.array([0., length*np.sin(theta)]))
-                        #TODO: add noise to the movement
+                    for time, theta in zip(time_ranges[0], np.linspace(0., np.pi/2, 125)):
+                        limb.movement.append(np.array([time, length*np.sin(theta), 0., length*(1 - np.cos(theta))]))
+                    for time, theta in zip(time_ranges[1], np.linspace(np.pi/2, 0., 125)):
+                        limb.movement.append(np.array([time, length*np.sin(theta), 0., length*(1 - np.cos(theta))]))
+                    for time in time_ranges[2]:
+                        limb.movement.append(np.array([time, 0., 0., 0.]))
+                    for time in time_ranges[3]:
+                        limb.movement.append(np.array([time, 0., 0., 0.]))
+
+            elif limb.position == SensorPosition.LEFT_THIGH:
+                for length in limb.lengths:
+                    for time in time_ranges[0]:
+                        limb.movement.append(np.array([time, 0., 0., 0.]))
+                    for time in time_ranges[1]:
+                        limb.movement.append(np.array([time, 0., 0., 0.]))
+                    for time, theta in zip(time_ranges[2], np.linspace(0., np.pi/2, 125)):
+                        limb.movement.append(np.array([time, length*np.sin(theta), 0., length*(1 - np.cos(theta))]))
+                    for time, theta in zip(time_ranges[3], np.linspace(np.pi/2, 0., 125)):
+                        limb.movement.append(np.array([time, length*np.sin(theta), 0., length*(1 - np.cos(theta))]))
+
+            elif limb.position == SensorPosition.RIGHT_SHANK:
+                for length in limb.lengths:
+                    for time, theta in zip(time_ranges[0], np.linspace(0., np.pi/2, 125)):
+                        limb.movement.append(np.array([time, 0., 0., length*(1 - np.cos(theta))]))
+                    for time, theta in zip(time_ranges[1], np.linspace(np.pi/2, 0., 125)):
+                        limb.movement.append(np.array([time, 0., 0., length*(1 - np.cos(theta))]))
+                    for time in time_ranges[2]:
+                        limb.movement.append(np.array([time, 0., 0., 0.]))
+                    for time in time_ranges[3]:
+                        limb.movement.append(np.array([time, 0., 0., 0.]))
+
+            elif limb.position == SensorPosition.LEFT_SHANK:
+                for length in limb.lengths:
+                    for time in time_ranges[0]:
+                        limb.movement.append(np.array([time, 0., 0., 0.]))
+                    for time in time_ranges[1]:
+                        limb.movement.append(np.array([time, 0., 0., 0.]))
+                    for time, theta in zip(time_ranges[2], np.linspace(0., np.pi/2, 125)):
+                        limb.movement.append(np.array([time, 0., 0., length*(1 - np.cos(theta))]))
+                    for time, theta in zip(time_ranges[3], np.linspace(np.pi/2, 0., 125)):
+                        limb.movement.append(np.array([time, 0., 0., length*(1 - np.cos(theta))]))
 
             elif limb.position == SensorPosition.CHEST:
                 for length in limb.lengths:
-                    for _ in np.linspace(0, np.pi/2, 50):
-                        limb.movement.append((0.)) # TODO: change chest coordinates to comply with kalman filter output
-                        #TODO: add noise to the movement
+                    for time in time_ranges[0]:
+                        limb.movement.append(np.array([time, 0., 0., 0.]))
+                    for time in time_ranges[1]:
+                        limb.movement.append(np.array([time, 0., 0., 0.]))
+                    for time in time_ranges[2]:
+                        limb.movement.append(np.array([time, 0., 0., 0.]))
+                    for time in time_ranges[3]:
+                        limb.movement.append(np.array([time, 0., 0., 0.]))
+
+    def compute_centroids(self):
+        for limb in self.limbs:
+            limb.centroid = compute_centroids(limb.movement)

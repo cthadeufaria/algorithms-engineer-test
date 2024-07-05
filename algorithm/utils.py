@@ -6,3 +6,6 @@ def add_noise(data: list):
 
 def save_csv():
     pass
+
+def compute_centroids(data: list):
+    return np.mean(data, axis=0)
