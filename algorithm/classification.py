@@ -3,8 +3,7 @@ from supportlib.data_types import SensorPosition
 
 
 class Classifier:
-    def __init__(self, position_requester):
-        self.position_requester = position_requester
+    def __init__(self):
         self.estimated_xyz = dict()
         self.angles = dict()
         self.sensor_positions = dict()
@@ -24,36 +23,37 @@ class Classifier:
                 (np.pi/2) - np.arcsin(data[0][1]), 
                 (np.pi) - np.arccos(-data[0][2])
             ]) * (180 / np.pi)
-            print(f"{sensor}'s angles: {self.angles[sensor]}")
-            print(data[0][0])
-            print(data[0][1])
-            print(data[0][2])
 
         self.distance_from_origin()
-        self.decision_tree()
+        return self.decision_tree()
 
     def distance_from_origin(self):
         for sensor, xyz in self.estimated_xyz.items():
             self.distances[sensor] = np.linalg.norm(xyz - np. array([0, 0, 0]))
-            print(f"{sensor}'s distance from origin: {self.distances[sensor]}")
 
     def decision_tree(self):
         for sensor, angle in self.angles.items():
             if angle[0] < 10:
                 if SensorPosition.RIGHT_THIGH not in self.sensor_positions.values():
                     self.sensor_positions[sensor] = SensorPosition.RIGHT_THIGH
-                    # self.position_requester.on_sensor_position_found(self, sensor, SensorPosition.RIGHT_THIGH)
+                    return sensor, SensorPosition.RIGHT_THIGH
+
+                elif SensorPosition.RIGHT_SHANK not in self.sensor_positions.values():
                     max_key = max(self.distances, key=self.distances.get)
                     self.sensor_positions[max_key] = SensorPosition.RIGHT_SHANK
-                    # self.position_requester.on_sensor_position_found(max_key, SensorPosition.RIGHT_SHANK)
-                
-                elif SensorPosition.RIGHT_THIGH in self.sensor_positions.values() and sensor not in self.sensor_positions.keys():
+                    return max_key, SensorPosition.RIGHT_SHANK
+
+                elif SensorPosition.LEFT_THIGH not in self.sensor_positions.values() and sensor not in self.sensor_positions.keys():
                     self.sensor_positions[sensor] = SensorPosition.LEFT_THIGH
-                    # self.position_requester.on_sensor_position_found(sensor, SensorPosition.LEFT_THIGH)
+                    return sensor, SensorPosition.LEFT_THIGH
+
+                elif len(self.sensor_positions.values()) == 3:
                     max_key = max(self.distances, key=self.distances.get)
                     self.sensor_positions[max_key] = SensorPosition.LEFT_SHANK
-                    # self.position_requester.on_sensor_position_found(max_key, SensorPosition.LEFT_SHANK)
-
+                    return max_key, SensorPosition.LEFT_SHANK
+                            
             if len(self.sensor_positions) == 4 and sensor not in self.sensor_positions.keys():
                 self.sensor_positions[sensor] = SensorPosition.CHEST
-                # self.position_requester.on_sensor_position_found(sensor, SensorPosition.CHEST)
+                return sensor, SensorPosition.CHEST
+
+        return None, None

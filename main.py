@@ -18,7 +18,7 @@ CORRECT_POSITIONS = {
 class SensorPositionFinderTester(SensorPositionRequester):
 
     def __init__(self):
-        self.position_finder = SensorPositionIdentifier(SensorPositionRequester)
+        self.position_finder = SensorPositionIdentifier(self)
         self.sensor_positions = dict()
         self.finished = False
 
