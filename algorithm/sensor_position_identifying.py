@@ -1,19 +1,16 @@
-import numpy as np
-import matplotlib.pyplot as plt
 from supportlib.data_types import Sensor, SensorData
-from supportlib.sensor_position_finding import SensorPositionFinder, SensorPositionRequester
-from algorithm.kinematics_model import Body
+from supportlib.sensor_position_finding import SensorPositionRequester
 from algorithm.kalman_filter import KalmanFilter
 from algorithm.classification import Classifier
 
 
-class SensorPositionIdentifier(SensorPositionFinder):
-    def __init__(self, 
-                 position_requester: SensorPositionRequester):
-        super().__init__(position_requester)
-        self.body = Body()
+class SensorPositionIdentifier(SensorPositionRequester):
+    def __init__(self):
         self.kalman_filter = dict()
         self.classifier = Classifier()
+
+    def on_finish(self):
+        pass
 
     def on_new_sensor_sample(self,
                              data_dict: dict[Sensor, SensorData]):
@@ -28,15 +25,8 @@ class SensorPositionIdentifier(SensorPositionFinder):
         self.classifier.classify(self.kalman_filter,
                                  data_dict)
 
-        # TODO: identify the sensor position based on the sensor data
-        # self.sensor_positions = None
-        
-        # TODO: call on_sensor_position_found when an unknown sensor position is identified
-        # if self.classifier.positions not in self.sensor_positions and isinstance(sensor_position, SensorPosition):
-        #     self.position_requester.on_sensor_position_found(sensor, sensor_position)
-
-        # TODO: call on_finish when all sensor positions are identified
-        # self.position_requester.on_finish()
+        if len(self.classifier.sensor_positions) == 5:
+            self.on_finish()
 
     def on_first_observation(self, 
                      data_dict: dict[Sensor, SensorData]):

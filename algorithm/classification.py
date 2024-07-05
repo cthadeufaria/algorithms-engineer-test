@@ -3,7 +3,8 @@ from supportlib.data_types import SensorPosition
 
 
 class Classifier:
-    def __init__(self):
+    def __init__(self, position_requester):
+        self.position_requester = position_requester
         self.estimated_xyz = dict()
         self.angles = dict()
         self.sensor_positions = dict()
@@ -41,13 +42,18 @@ class Classifier:
             if angle[0] < 10:
                 if SensorPosition.RIGHT_THIGH not in self.sensor_positions.values():
                     self.sensor_positions[sensor] = SensorPosition.RIGHT_THIGH
+                    # self.position_requester.on_sensor_position_found(self, sensor, SensorPosition.RIGHT_THIGH)
                     max_key = max(self.distances, key=self.distances.get)
                     self.sensor_positions[max_key] = SensorPosition.RIGHT_SHANK
+                    # self.position_requester.on_sensor_position_found(max_key, SensorPosition.RIGHT_SHANK)
                 
                 elif SensorPosition.RIGHT_THIGH in self.sensor_positions.values() and sensor not in self.sensor_positions.keys():
                     self.sensor_positions[sensor] = SensorPosition.LEFT_THIGH
+                    # self.position_requester.on_sensor_position_found(sensor, SensorPosition.LEFT_THIGH)
                     max_key = max(self.distances, key=self.distances.get)
                     self.sensor_positions[max_key] = SensorPosition.LEFT_SHANK
+                    # self.position_requester.on_sensor_position_found(max_key, SensorPosition.LEFT_SHANK)
 
             if len(self.sensor_positions) == 4 and sensor not in self.sensor_positions.keys():
                 self.sensor_positions[sensor] = SensorPosition.CHEST
+                # self.position_requester.on_sensor_position_found(sensor, SensorPosition.CHEST)
