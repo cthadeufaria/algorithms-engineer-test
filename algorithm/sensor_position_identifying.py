@@ -1,11 +1,10 @@
 import numpy as np
 import matplotlib.pyplot as plt
-from supportlib.data_types import Sensor, SensorData, SensorPosition
+from supportlib.data_types import Sensor, SensorData
 from supportlib.sensor_position_finding import SensorPositionFinder, SensorPositionRequester
 from algorithm.kinematics_model import Body
 from algorithm.kalman_filter import KalmanFilter
 from algorithm.classification import Classifier
-from algorithm.utils import compute_centroids
 
 
 class SensorPositionIdentifier(SensorPositionFinder):
@@ -14,27 +13,20 @@ class SensorPositionIdentifier(SensorPositionFinder):
         super().__init__(position_requester)
         self.body = Body()
         self.kalman_filter = dict()
-        self.sensor_positions = dict()
-        self.classifier = Classifier(self.body.limbs)
-        self.centroids = dict()
-        self.time = [0.]
+        self.classifier = Classifier()
 
     def on_new_sensor_sample(self,
                              data_dict: dict[Sensor, SensorData]):
 
         if len(self.kalman_filter) == 0:
-            self.on_first_row(data_dict)
+            self.on_first_observation(data_dict)
 
         for sensor, sensor_data in data_dict.items():
             self.iterate_kalman_filter(sensor, 
                                        sensor_data)
 
-        # TODO: classify the sensor data and assign to self.sensor_positions the class when 'some min prob condition'
-        self.classifier.find_closest_class(self.centroids, 
-                                            self.body.limbs)
-
-        self.classifier.classify(self.time, 
-                                 self.kalman_filter)
+        self.classifier.classify(self.kalman_filter,
+                                 data_dict)
 
         # TODO: identify the sensor position based on the sensor data
         # self.sensor_positions = None
@@ -46,9 +38,7 @@ class SensorPositionIdentifier(SensorPositionFinder):
         # TODO: call on_finish when all sensor positions are identified
         # self.position_requester.on_finish()
 
-        self.time.append(self.time[-1] + 0.02)
-
-    def on_first_row(self, 
+    def on_first_observation(self, 
                      data_dict: dict[Sensor, SensorData]):
         for sensor in data_dict.keys():
             self.kalman_filter[sensor] = (KalmanFilter(), KalmanFilter(), KalmanFilter())

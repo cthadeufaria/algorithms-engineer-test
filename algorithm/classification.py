@@ -1,64 +1,53 @@
 import numpy as np
-from sklearn.naive_bayes import GaussianNB
-from sklearn.preprocessing import MinMaxScaler
-from algorithm.utils import compute_centroids
+from supportlib.data_types import SensorPosition
 
 
 class Classifier:
-    def __init__(self, limbs):
-        self.min_distances = dict()
-        self.positions = dict()
-        self.labeled_data = limbs
-        self.train()
-        self.centroids = dict()
-        self.class_probabilities = dict()
+    def __init__(self):
+        self.estimated_xyz = dict()
+        self.angles = dict()
+        self.sensor_positions = dict()
+        self.distances = dict()
 
-    def train(self):
-        self.prepare_data()
-        self.nb_classifier = GaussianNB()
-        self.nb_classifier.fit(self.X_train, self.y_train)
-
-    def prepare_data(self):
-        X_train = list()
-        y_train = list()
-        for data in self.labeled_data:
-            X_train.append(data.movement)
-            y_train.append([str(data.position) for _ in range(len(data.movement))])
-
-        self.X_train = self.normalize(np.array([item for sublist in X_train for item in sublist]))
-        self.y_train = [item for sublist in y_train for item in sublist]
-
-    def classify(self, time, kalman_filter):
-        data = dict()
-        for sensor in kalman_filter.keys():
-            data[sensor] = self.normalize([
-                np.array([t, x, y, z]) for t, x, y, z in zip(
-                    time,
-                    kalman_filter[sensor][0].coordinates, 
-                    kalman_filter[sensor][1].coordinates,
-                    kalman_filter[sensor][2].coordinates
-                )
+    def classify(self, kalman_filter, sensor_data):
+        for sensor, data in kalman_filter.items():
+            self.estimated_xyz[sensor] = np.array([
+                data[0].coordinates[-1], 
+                data[1].coordinates[-1], 
+                data[2].coordinates[-1]
             ])
-            self.centroids[sensor] = compute_centroids(data[sensor])
-            self.class_probabilities[sensor] = self.nb_classifier.predict_proba(self.centroids[sensor].reshape(1, -1))
 
-    def find_closest_class(self, unlabeled_centroids, class_centroids):
+        for sensor, data in sensor_data.items():
+            self.angles[sensor] = np.array([
+                np.arccos(data[0][0]),
+                (np.pi/2) - np.arcsin(data[0][1]), 
+                (np.pi) - np.arccos(-data[0][2])
+            ]) * (180 / np.pi)
+            print(f"{sensor}'s angles: {self.angles[sensor]}")
+            print(data[0][0])
+            print(data[0][1])
+            print(data[0][2])
 
-        for sensor, centroid in unlabeled_centroids.items():
-            min_distance = float('inf')
+        self.distance_from_origin()
+        self.decision_tree()
 
-            for limb in class_centroids:
-                distance = np.linalg.norm(centroid - limb.centroid)
-                if distance < min_distance:
-                    min_distance = distance
-                    self.min_distances[sensor] = min_distance
-                    self.positions[sensor] = limb.position
-        
-        self.converge()
+    def distance_from_origin(self):
+        for sensor, xyz in self.estimated_xyz.items():
+            self.distances[sensor] = np.linalg.norm(xyz - np. array([0, 0, 0]))
+            print(f"{sensor}'s distance from origin: {self.distances[sensor]}")
 
-    def normalize(self, array: np.array):
-        scaler = MinMaxScaler()
-        return scaler.fit_transform(array)
+    def decision_tree(self):
+        for sensor, angle in self.angles.items():
+            if angle[0] < 10:
+                if SensorPosition.RIGHT_THIGH not in self.sensor_positions.values():
+                    self.sensor_positions[sensor] = SensorPosition.RIGHT_THIGH
+                    max_key = max(self.distances, key=self.distances.get)
+                    self.sensor_positions[max_key] = SensorPosition.RIGHT_SHANK
+                
+                elif SensorPosition.RIGHT_THIGH in self.sensor_positions.values() and sensor not in self.sensor_positions.keys():
+                    self.sensor_positions[sensor] = SensorPosition.LEFT_THIGH
+                    max_key = max(self.distances, key=self.distances.get)
+                    self.sensor_positions[max_key] = SensorPosition.LEFT_SHANK
 
-    def converge(self):
-        pass
+            if len(self.sensor_positions) == 4 and sensor not in self.sensor_positions.keys():
+                self.sensor_positions[sensor] = SensorPosition.CHEST
